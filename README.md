@@ -1,2 +1,2 @@
-# hangman_game
-for AP CSP
+# Hangman Game
+A project for AP CSP
