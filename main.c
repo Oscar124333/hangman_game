@@ -13,13 +13,16 @@ enum
 };
 
 // Prototypes
+bool doesListHaveChar(char *list, char character);
+    // Utility Prototypes
 int inputHandler(char *variable);
 void inputPrompt(char *variable, char *prompt);
+// ^
 
 int main(void)
 {
     int playerOutcome = ONGOING; // ongoing by default at startup
-    int lives = 6;
+    int lives = 99;
 
     char key[] = "secret";
     int keyLength = strlen(key);
@@ -27,57 +30,74 @@ int main(void)
     char hint[keyLength];
     memset(hint, 95, keyLength * sizeof(char));
     
-    char *guessLetterLibrary = calloc(1 + NULL_TERM_SIZE, sizeof(char));
-    if (guessLetterLibrary == NULL)
+    char *guessLibrary = calloc(1 + NULL_TERM_SIZE, sizeof(char));
+    if (guessLibrary == NULL)
     {
         perror("char *guesslib malloc");
-        free(guessLetterLibrary);
+        free(guessLibrary);
         return 1;
     }
     
+    
     char userInput;    
-    int previous_correctCounter = 0;
     int correctCounter = 0;
+    int correctCounterPrevious = 0;
     while (playerOutcome == ONGOING)
     {
+        int guessLibraryLength = strlen(guessLibrary); 
+        bool guessRepeated = false;
+
         inputPrompt(&userInput, "Please enter a single character guess");
         printf("\n");
         
         for (int i = 0; i < keyLength; i++)
         {
+            char hintPrevious[keyLength];
+            strcpy(hintPrevious, hint);
+            if (doesListHaveChar(guessLibrary, userInput) || doesListHaveChar(hintPrevious, userInput))
+            {    
+                printf("You already guessed this letter!\n");
+                guessRepeated = true;
+                break;
+            }
             if (userInput == key[i])
             {
-                hint[i] = key[i];
-                correctCounter++;
+                {
+                    hint[i] = key[i];
+                    correctCounter++;
+                }
             }
         }
         
-        if (correctCounter == keyLength)
+        if (guessRepeated)
+        {
+            goto skip;
+        }
+        else if (correctCounter >= keyLength)
         {
             printf("You got the word!\n");
             break;
         }
-        else if (correctCounter > previous_correctCounter)
+        else if (correctCounter > correctCounterPrevious)
         {
             printf("You guessed correctly!\n");
         }
         else 
         {
             lives--;
-            int length_guessLetterLibrary = strlen(guessLetterLibrary); 
-            guessLetterLibrary[length_guessLetterLibrary] = userInput;
+            guessLibrary[guessLibraryLength] = userInput;
             
             // refactor later
-            char *temp = realloc(guessLetterLibrary, length_guessLetterLibrary + 1 + NULL_TERM_SIZE);
+            char *temp = realloc(guessLibrary, guessLibraryLength + 1 + NULL_TERM_SIZE);
             if (temp == NULL)
             {
                 perror("char temp realloc");
                 free(temp);
                 return 1;
             }
-            guessLetterLibrary = temp;
+            guessLibrary = temp;
             // ^
-
+            
             printf("%i lives remaining!\n", lives);
             if (lives <= 0)
             {
@@ -85,21 +105,35 @@ int main(void)
                 break;
             }
         }
-        printf("Incorrect Guesses: %s\nHint: %s\n\n", guessLetterLibrary, hint);
-        
-        previous_correctCounter = correctCounter;
+        skip: printf("Incorrect Guesses: %s\nHint: %s\n\n", guessLibrary, hint);
+        correctCounterPrevious = correctCounter;
     }
     
     
-    free(guessLetterLibrary);
+    free(guessLibrary);
     return 0;
 }
 
+/*************/
+/* Functions */
+/*************/
 
+bool doesListHaveChar(char *list, char character)
+{
+    int listLength = strlen(list);
+    for (int i = 0; i < listLength; i++)
+    {
+        if (character == list[i])
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
-/***********/
-/*   I/O   */
-/***********/
+/*************/
+/*  Utility  */
+/*************/
 
 int inputHandler(char *variable)
 {
