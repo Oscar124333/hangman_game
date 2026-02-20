@@ -5,6 +5,9 @@
 
 // Constants
 const int NULL_TERM_SIZE = 1;
+const int WRONGLETTERS = 0;
+const int CORRECTLETTERS = 1;
+const int guessLibrarySIZE = 2;
 enum
 {
     ONGOING,
@@ -17,12 +20,13 @@ bool doesListHaveChar(char *list, char character);
     // Utility Prototypes
 int inputHandler(char *variable);
 void inputPrompt(char *variable, char *prompt);
+bool didReallocFail(char *temp);
 // ^
 
 int main(void)
 {
-    int playerOutcome = ONGOING; // ongoing by default at startup
-    int lives = 99;
+    int playerOutcome = ONGOING;
+    int lives = 6;
 
     char key[] = "secret";
     int keyLength = strlen(key);
@@ -30,21 +34,25 @@ int main(void)
     char hint[keyLength];
     memset(hint, 95, keyLength * sizeof(char));
     
-    char *guessLibrary = calloc(1 + NULL_TERM_SIZE, sizeof(char));
-    if (guessLibrary == NULL)
+    char *guessLibrary[2];
+    for (int i = 0; i < 2; i++)
     {
-        perror("char *guesslib malloc");
-        free(guessLibrary);
-        return 1;
-    }
-    
+        guessLibrary[i] = calloc(1 + NULL_TERM_SIZE, sizeof(char));
+        if (guessLibrary[i] == NULL)
+        {
+            perror("char *guesslib malloc");
+            free(guessLibrary[i]);
+            return 1;
+        }
+    }    
     
     char userInput;    
     int correctCounter = 0;
     int correctCounterPrevious = 0;
     while (playerOutcome == ONGOING)
     {
-        int guessLibraryLength = strlen(guessLibrary); 
+        int wrongGuessLibraryLength = strlen(guessLibrary[WRONGLETTERS]); 
+        int correctGuessLibraryLength = strlen(guessLibrary[CORRECTLETTERS]);
         bool guessRepeated = false;
 
         inputPrompt(&userInput, "Please enter a single character guess");
@@ -54,7 +62,8 @@ int main(void)
         {
             char hintPrevious[keyLength];
             strcpy(hintPrevious, hint);
-            if (doesListHaveChar(guessLibrary, userInput) || doesListHaveChar(hintPrevious, userInput))
+
+            if (doesListHaveChar(guessLibrary[WRONGLETTERS], userInput) || doesListHaveChar(guessLibrary[CORRECTLETTERS], userInput))
             {    
                 printf("You already guessed this letter!\n");
                 guessRepeated = true;
@@ -69,6 +78,18 @@ int main(void)
             }
         }
         
+        for (int i = 0; i < guessLibrarySIZE; i++)
+        {
+            char *temp = realloc(guessLibrary[i], strlen(guessLibrary[i]) + 1 + NULL_TERM_SIZE);
+            if (temp == NULL)
+            {
+                perror("char temp realloc");
+                free(temp);
+                return 1;
+            }
+            guessLibrary[i] = temp;
+        }
+
         if (guessRepeated)
         {
             goto skip;
@@ -76,41 +97,34 @@ int main(void)
         else if (correctCounter >= keyLength)
         {
             printf("You got the word!\n");
+            printf("--> %s <--\n", hint);
             break;
         }
         else if (correctCounter > correctCounterPrevious)
         {
             printf("You guessed correctly!\n");
+            guessLibrary[CORRECTLETTERS][correctGuessLibraryLength] = userInput;
         }
-        else 
+        else
         {
             lives--;
-            guessLibrary[guessLibraryLength] = userInput;
-            
-            // refactor later
-            char *temp = realloc(guessLibrary, guessLibraryLength + 1 + NULL_TERM_SIZE);
-            if (temp == NULL)
-            {
-                perror("char temp realloc");
-                free(temp);
-                return 1;
-            }
-            guessLibrary = temp;
-            // ^
-            
             printf("%i lives remaining!\n", lives);
-            if (lives <= 0)
-            {
-                printf("You ran out of lives! :(\n");
-                break;
-            }
+            guessLibrary[WRONGLETTERS][wrongGuessLibraryLength] = userInput;
         }
-        skip: printf("Incorrect Guesses: %s\nHint: %s\n\n", guessLibrary, hint);
+        
+        if (lives <= 0)
+        {
+            printf("You ran out of lives! :(\n");
+            break;
+        }
+        
+        skip: printf("Incorrect Guesses: %s\nHint: %s\n\n", guessLibrary[WRONGLETTERS], hint);
         correctCounterPrevious = correctCounter;
     }
     
     
-    free(guessLibrary);
+    free(guessLibrary[WRONGLETTERS]);
+    free(guessLibrary[CORRECTLETTERS]);
     return 0;
 }
 
