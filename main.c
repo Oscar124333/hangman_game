@@ -30,13 +30,15 @@ int main(void)
     int lives = 6;
 
     // Key/Secrets
-    char *key[] = {"secret", "hippopotamus", "apple", "computer", "oscar", "principles"};
-    int keySize = sizeof(key) / sizeof(char *);
+    char *keyList[] = {"secret", "hippopotamus", "apple", "computer", "oscar", "principles"};
+    int keyListSize = sizeof(keyList) / sizeof(char *);
+
     srand(time(NULL));
-    int keyRNGIndex = RNG(0, keySize - 1);
-    int keyLength = strlen(key[keyRNGIndex]);
-    char keyCurrent[keyLength + NULL_TERM_SIZE];
-    strcpy(keyCurrent, key[keyRNGIndex]);
+    int keyRNGIndex = RNG(0, keyListSize - 1);
+   
+    int keyLength = strlen(keyList[keyRNGIndex]);
+    char keyChosen[keyLength + NULL_TERM_SIZE];
+    strcpy(keyChosen, keyList[keyRNGIndex]);
 
     // Hint
     char hint[keyLength + NULL_TERM_SIZE];
@@ -78,10 +80,10 @@ int main(void)
                 guessRepeated = true;
                 break;
             }
-            if (userInput == keyCurrent[i])
+            if (userInput == keyChosen[i])
             {
                 {
-                    hint[i] = keyCurrent[i];
+                    hint[i] = keyChosen[i];
                     correctCounter++;
                 }
             }
@@ -133,7 +135,7 @@ int main(void)
             break;
         }
         
-        skip: printf("Incorrect Guesses: %s\n", guessLibrary[WRONGLETTERS]);
+        skip: printf("Wrong Guesses: %s\n", guessLibrary[WRONGLETTERS]);
         correctCounterPrevious = correctCounter;
     }
     
@@ -176,7 +178,7 @@ int inputHandler(char *variable)
     int status = 0;
     int ch;
     status = scanf("%c", variable);
-    while ((ch = getchar()) != '\n' && ch != EOF); // Clear buffer
+    while ((ch = getchar()) != '\n' && ch != EOF); // AI-generated buffer clearance (I made this a long time ago)
     return status;
 }
 
