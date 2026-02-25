@@ -5,6 +5,7 @@
 #include <time.h>
 
 // Constants
+#define ERRMALLOC 1
 const int NULL_TERM_SIZE = 1;
 const int WRONGLETTERS = 0;
 const int CORRECTLETTERS = 1;
@@ -22,6 +23,7 @@ int RNG(int rangeStart, int rangeEnd);
     // Utility Prototypes
 int inputHandler(char *variable);
 void inputPrompt(char *variable, char *prompt);
+bool ptrInvalid(void *ptr, char *errorMsg);
 // ^
 
 int main(void)
@@ -50,12 +52,7 @@ int main(void)
     for (int i = 0; i < 2; i++)
     {
         guessLibrary[i] = calloc(1 + NULL_TERM_SIZE, sizeof(char));
-        if (guessLibrary[i] == NULL)
-        {
-            perror("char *guesslib malloc");
-            free(guessLibrary[i]);
-            return 1;
-        }
+        if (ptrInvalid(guessLibrary[i], "guesslib malloc")) {return ERRMALLOC;}
     }    
     
     // Main Loop
@@ -104,12 +101,8 @@ int main(void)
             printf("You guessed correctly!\n");
 
             char *temp = realloc(guessLibrary[CORRECTLETTERS], correctGuessLibraryLength + 1 + NULL_TERM_SIZE);
-            if (temp == NULL)
-            {
-                perror("char temp realloc");
-                free(temp);
-                return 1;
-            }
+            if (ptrInvalid(temp, "temp malloc")) {return ERRMALLOC;}
+
             guessLibrary[CORRECTLETTERS] = temp;
             guessLibrary[CORRECTLETTERS][correctGuessLibraryLength] = userInput;
         }
@@ -119,12 +112,8 @@ int main(void)
             printf("%i lives remaining!\n", lives);
 
             char *temp = realloc(guessLibrary[WRONGLETTERS], wrongGuessLibraryLength + 1 + NULL_TERM_SIZE);
-            if (temp == NULL)
-            {
-                perror("char temp realloc");
-                free(temp);
-                return 1;
-            }
+            if (ptrInvalid(temp, "temp malloc")) {return ERRMALLOC;}
+
             guessLibrary[WRONGLETTERS] = temp;
             guessLibrary[WRONGLETTERS][wrongGuessLibraryLength] = userInput;
         }
@@ -189,4 +178,15 @@ void inputPrompt(char *variable, char *prompt)
         printf("%s\n==> ", prompt);
     } while (inputHandler(variable) != 1);
     return;
+}
+
+bool ptrInvalid(void *ptr, char *errorMsg)
+{
+    if (ptr == NULL)
+    {
+        perror(errorMsg);
+        free(ptr);
+        return true;
+    }
+    return false;
 }
