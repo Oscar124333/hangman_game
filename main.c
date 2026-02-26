@@ -52,7 +52,7 @@ int main(void)
     for (int i = 0; i < 2; i++)
     {
         guessLibrary[i] = calloc(1 + NULL_TERM_SIZE, sizeof(char));
-        if (ptrInvalid(guessLibrary[i], "guesslib malloc")) {return ERRMALLOC;}
+        if (ptrInvalid(guessLibrary[i], "guesslib calloc")) {return ERRMALLOC;}
     }    
     
     // Main Loop
@@ -79,10 +79,8 @@ int main(void)
             }
             if (userInput == keyChosen[i])
             {
-                {
-                    hint[i] = keyChosen[i];
-                    correctCounter++;
-                }
+                hint[i] = keyChosen[i];
+                correctCounter++;
             }
         }
 
@@ -101,7 +99,7 @@ int main(void)
             printf("You guessed correctly!\n");
 
             char *temp = realloc(guessLibrary[CORRECTLETTERS], correctGuessLibraryLength + 1 + NULL_TERM_SIZE);
-            if (ptrInvalid(temp, "temp malloc")) {return ERRMALLOC;}
+            if (ptrInvalid(temp, "correct_temp malloc")) {return ERRMALLOC;}
 
             guessLibrary[CORRECTLETTERS] = temp;
             guessLibrary[CORRECTLETTERS][correctGuessLibraryLength] = userInput;
@@ -112,7 +110,7 @@ int main(void)
             printf("%i lives remaining!\n", lives);
 
             char *temp = realloc(guessLibrary[WRONGLETTERS], wrongGuessLibraryLength + 1 + NULL_TERM_SIZE);
-            if (ptrInvalid(temp, "temp malloc")) {return ERRMALLOC;}
+            if (ptrInvalid(temp, "incorrent_temp malloc")) {return ERRMALLOC;}
 
             guessLibrary[WRONGLETTERS] = temp;
             guessLibrary[WRONGLETTERS][wrongGuessLibraryLength] = userInput;
